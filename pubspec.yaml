@@ -19,6 +19,7 @@ dependencies:
   latlong2: ^0.9.1
   flutter_map: ^8.2.2
   google_maps_flutter: ^2.5.0
+  flutter_pdfview: ^1.4.3
   
 
 dev_dependencies:

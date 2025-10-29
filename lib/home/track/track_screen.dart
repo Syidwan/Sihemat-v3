@@ -152,6 +152,7 @@ class _TrackScreenState extends State<TrackScreen>
       ),
       body: TabBarView(
         controller: _tabController,
+        physics: NeverScrollableScrollPhysics(), // ✅ DISABLE SWIPE
         children: [
           DaftarPage(onVehicleSelected: _onVehicleSelected),
           PetaPageGoogle(key: _petaPageGoogleKey, initialVehicleId: _selectedVehicleId),

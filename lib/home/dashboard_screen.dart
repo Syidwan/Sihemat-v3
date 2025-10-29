@@ -5,7 +5,7 @@ import 'package:sihemat_v3/home/menu/cek_kendaraan/cek_kendaraan_navigator.dart'
 import 'package:sihemat_v3/home/menu/cek_pajak/cek_pajak_screen.dart';
 import 'package:sihemat_v3/home/menu/speedometer/speedometer_navigator.dart';
 import 'package:sihemat_v3/home/menu/tambah_unit_screen.dart';
-import 'package:sihemat_v3/home/menu/toubleshoot_screen.dart';
+import 'package:sihemat_v3/home/menu/troubleshoot/troubleshoot_screen.dart';
 import 'package:sihemat_v3/home/track/track_screen.dart';
 import 'package:sihemat_v3/utils/session_manager.dart';
 import '../models/menu_item.dart';
