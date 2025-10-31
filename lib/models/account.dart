@@ -3,6 +3,7 @@ class Account {
   final String role; // "pengguna" atau "korporasi"
   final String email;
   final String password;
+  final String verificationCode; // Kode verifikasi untuk guest access
   
   // Field untuk pengguna
   final String? firstName;
@@ -22,6 +23,7 @@ class Account {
     required this.role,
     required this.email,
     required this.password,
+    required this.verificationCode,
     this.firstName,
     this.lastName,
     this.phone,
@@ -40,6 +42,7 @@ class Account {
       'role': role,
       'email': email,
       'password': password,
+      'verificationCode': verificationCode,
       'firstName': firstName,
       'lastName': lastName,
       'phone': phone,
@@ -56,6 +59,7 @@ class Account {
       role: json['role'],
       email: json['email'],
       password: json['password'],
+      verificationCode: json['verificationCode'],
       firstName: json['firstName'],
       lastName: json['lastName'],
       phone: json['phone'],

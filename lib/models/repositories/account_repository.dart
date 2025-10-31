@@ -8,6 +8,7 @@ class AccountRepository {
       role: "pengguna",
       email: "budi.santoso@gmail.com",
       password: "budi123",
+      verificationCode: "BUDI2025", // Kode verifikasi untuk guest
       firstName: "Budi",
       lastName: "Santoso",
       phone: "081234567890",
@@ -19,6 +20,7 @@ class AccountRepository {
       role: "pengguna",
       email: "siti.nurhaliza@gmail.com",
       password: "siti456",
+      verificationCode: "SITI2025", // Kode verifikasi untuk guest
       firstName: "Siti",
       lastName: "Nurhaliza",
       phone: "082345678901",
@@ -32,6 +34,7 @@ class AccountRepository {
       role: "korporasi",
       email: "admin@pertamina.co.id",
       password: "pertamina123",
+      verificationCode: "PTMN2025", // Kode verifikasi untuk guest
       companyName: "PT Pertamina",
       ownedVehicleIds: [1, 2, 3, 4, 5], // Memiliki 5 kendaraan
     ),
@@ -40,6 +43,7 @@ class AccountRepository {
       role: "korporasi",
       email: "contact@shellindo.com",
       password: "shell456",
+      verificationCode: "SHEL2025", // Kode verifikasi untuk guest
       companyName: "Shell Indonesia",
       ownedVehicleIds: [6, 7, 8, 9, 10], // Memiliki 5 kendaraan
     ),
@@ -53,6 +57,30 @@ class AccountRepository {
     try {
       return _registeredAccounts.firstWhere(
         (account) => account.email == email && account.password == password,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Guest login dengan plat nomor dan verification code
+  static Account? guestLogin(String platNomor, String verificationCode) {
+    try {
+      return _registeredAccounts.firstWhere(
+        (account) => 
+          account.platNomor?.toUpperCase() == platNomor.toUpperCase() && 
+          account.verificationCode.toUpperCase() == verificationCode.toUpperCase(),
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Cek apakah plat nomor terdaftar
+  static Account? getAccountByPlatNomor(String platNomor) {
+    try {
+      return _registeredAccounts.firstWhere(
+        (account) => account.platNomor?.toUpperCase() == platNomor.toUpperCase(),
       );
     } catch (e) {
       return null;

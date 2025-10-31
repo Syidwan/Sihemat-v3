@@ -56,50 +56,50 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
     }
   }
 
-Future<void> _loadFromAsset() async {
-  try {
-    print('🔍 Trying to load: ${widget.pdfAsset}');
+  Future<void> _loadFromAsset() async {
+    try {
+      print('🔍 Trying to load: ${widget.pdfAsset}');
 
-    // Load bytes dari assets
-    final byteData = await rootBundle.load(widget.pdfAsset!);
-    print('✅ Asset loaded! Size: ${byteData.lengthInBytes} bytes');
+      // Load bytes dari assets
+      final byteData = await rootBundle.load(widget.pdfAsset!);
+      print('✅ Asset loaded! Size: ${byteData.lengthInBytes} bytes');
 
-    // Ambil nama file dari path
-    final filename = widget.pdfAsset!.split('/').last;
+      // Ambil nama file dari path
+      final filename = widget.pdfAsset!.split('/').last;
 
-    // Buat file sementara
-    final tempDir = await getTemporaryDirectory();
-    final file = File('${tempDir.path}/$filename');
+      // Buat file sementara
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/$filename');
 
-    await file.writeAsBytes(byteData.buffer.asUint8List(), flush: true);
-    print('✅ File written to: ${file.path}');
+      await file.writeAsBytes(byteData.buffer.asUint8List(), flush: true);
+      print('✅ File written to: ${file.path}');
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      localPath = file.path;
-      isLoading = false;
-    });
+      setState(() {
+        localPath = file.path;
+        isLoading = false;
+      });
 
-    print('✅ PDF ready to display!');
-  } catch (e) {
-    print('❌ Error loading asset: $e');
-    setState(() {
-      errorMessage = 'Error loading asset: $e';
-      isLoading = false;
-    });
+      print('✅ PDF ready to display!');
+    } catch (e) {
+      print('❌ Error loading asset: $e');
+      setState(() {
+        errorMessage = 'Error loading asset: $e';
+        isLoading = false;
+      });
+    }
   }
-}
 
   Future<void> _downloadPDF() async {
     try {
       final response = await http.get(Uri.parse(widget.pdfUrl!));
-      
+
       if (response.statusCode == 200) {
         final dir = await getTemporaryDirectory();
         final file = File('${dir.path}/downloaded.pdf');
         await file.writeAsBytes(response.bodyBytes);
-        
+
         setState(() {
           localPath = file.path;
           isLoading = false;
@@ -164,16 +164,11 @@ Future<void> _loadFromAsset() async {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(
-              color: Color(0xFFE53935),
-            ),
+            CircularProgressIndicator(color: Color(0xFFE53935)),
             SizedBox(height: 16),
             Text(
               'Loading PDF...',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
             ),
           ],
         ),
@@ -185,21 +180,14 @@ Future<void> _loadFromAsset() async {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red.shade300,
-            ),
+            Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
             SizedBox(height: 16),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 32),
               child: Text(
                 errorMessage!,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
               ),
             ),
             SizedBox(height: 24),
@@ -227,23 +215,20 @@ Future<void> _loadFromAsset() async {
       return Center(
         child: Text(
           'No PDF to display',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
         ),
       );
     }
 
     return PDFView(
       filePath: localPath,
-      enableSwipe: true,
-      swipeHorizontal: false,
-      autoSpacing: true,
-      pageFling: true,
-      pageSnap: true,
+      enableSwipe: true, // tetap bisa geser
+      swipeHorizontal: false, // vertikal scroll
+      autoSpacing: false, // hilangkan jarak antar halaman
+      pageFling: false, // nonaktifkan efek lempar halaman
+      pageSnap: false, // biar tidak terkunci di satu halaman
       defaultPage: 0,
-      fitPolicy: FitPolicy.BOTH,
+      fitPolicy: FitPolicy.WIDTH, // biar lebar pas layar (tinggi bisa scroll)
       preventLinkNavigation: false,
       onRender: (pages) {
         setState(() {
@@ -261,7 +246,7 @@ Future<void> _loadFromAsset() async {
         });
       },
       onViewCreated: (PDFViewController controller) {
-        // PDF controller ready
+        // controller siap digunakan
       },
       onPageChanged: (int? page, int? total) {
         setState(() {

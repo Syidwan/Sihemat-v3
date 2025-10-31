@@ -5,6 +5,7 @@ class MapControlButtons extends StatelessWidget {
   final VoidCallback onGpsLocation;
   final double top;
 
+  // ignore: use_super_parameters
   const MapControlButtons({
     Key? key,
     required this.onRecenter,

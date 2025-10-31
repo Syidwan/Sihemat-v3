@@ -108,7 +108,8 @@ class _RegisterPageState extends State<RegisterPage> {
       lastName: widget.role == 'pengguna' ? lastNameController.text.trim() : null,
       phone: widget.role == 'pengguna' ? phoneController.text.trim() : null,
       platNomor: widget.role == 'pengguna' ? platNomorController.text.trim() : null,
-      companyName: widget.role == 'korporasi' ? companyNameController.text.trim() : null,
+      companyName: widget.role == 'korporasi' ? companyNameController.text.trim() : null, 
+      verificationCode: '',
     );
 
     // Register ke repository

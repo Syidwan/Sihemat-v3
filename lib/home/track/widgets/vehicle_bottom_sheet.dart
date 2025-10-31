@@ -1,3 +1,5 @@
+// ignore_for_file: use_super_parameters
+
 import 'package:flutter/material.dart';
 import 'package:sihemat_v3/models/repositories/account_repository.dart';
 import 'package:sihemat_v3/models/vehicle_model.dart';
@@ -207,29 +209,37 @@ class VehicleBottomSheet extends StatelessWidget {
   Widget _buildActionButtons() {
     return Row(
       children: [
-        Expanded(child: _buildActionButton(
-          icon: Icons.person_pin_circle,
-          label: 'Lacak',
-          color: Colors.blue,
-        )),
+        Expanded(
+          child: _buildActionButton(
+            icon: Icons.person_pin_circle,
+            label: 'Lacak',
+            color: Colors.blue,
+          ),
+        ),
         SizedBox(width: 8),
-        Expanded(child: _buildActionButton(
-          icon: Icons.play_circle,
-          label: 'Playback',
-          color: Colors.green,
-        )),
+        Expanded(
+          child: _buildActionButton(
+            icon: Icons.play_circle,
+            label: 'Playback',
+            color: Colors.green,
+          ),
+        ),
         SizedBox(width: 8),
-        Expanded(child: _buildActionButton(
-          icon: Icons.speed,
-          label: 'Speedometer',
-          color: Colors.red,
-        )),
+        Expanded(
+          child: _buildActionButton(
+            icon: Icons.speed,
+            label: 'Speedometer',
+            color: Colors.red,
+          ),
+        ),
         SizedBox(width: 8),
-        Expanded(child: _buildActionButton(
-          icon: Icons.info,
-          label: 'Informasi',
-          color: Colors.orange,
-        )),
+        Expanded(
+          child: _buildActionButton(
+            icon: Icons.info,
+            label: 'Informasi',
+            color: Colors.orange,
+          ),
+        ),
       ],
     );
   }

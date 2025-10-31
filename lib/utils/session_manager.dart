@@ -1,21 +1,30 @@
 import 'package:sihemat_v3/models/account.dart';
 
 class SessionManager {
-  static String? userRole;
-  static Account? currentAccount;
+  static Account? _currentAccount;
+  static bool _isGuestMode = false;
 
-  // Login dan simpan account
+  static Account? get currentAccount => _currentAccount;
+  static bool get isGuestMode => _isGuestMode;
+
+  // Regular login
   static void login(Account account) {
-    currentAccount = account;
-    userRole = account.role;
+    _currentAccount = account;
+    _isGuestMode = false;
+  }
+
+  // Guest login
+  static void loginAsGuest(Account account) {
+    _currentAccount = account;
+    _isGuestMode = true;
   }
 
   // Logout
   static void logout() {
-    currentAccount = null;
-    userRole = null;
+    _currentAccount = null;
+    _isGuestMode = false;
   }
 
-  // Check if logged in
-  static bool get isLoggedIn => currentAccount != null;
+  // Check if user is logged in
+  static bool get isLoggedIn => _currentAccount != null;
 }

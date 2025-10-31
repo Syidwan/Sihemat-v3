@@ -11,10 +11,10 @@ class TroubleshootScreen extends StatelessWidget {
       id: 'motor_listrik',
       title: 'Troubleshoot Motor Listrik',
       icon: Icons.electric_bike,
-      pdfAsset: 'assets/pdf/anjim.pdf',
+      pdfAsset: 'assets/pdf/troubleshoot-motor-listrik.pdf',
+
       // pdfUrl: 'https://example.com/pdf/troubleshoot-motor-listrik.pdf',
       // Alternatif: gunakan asset lokal
-      
     ),
     TroubleshootItem(
       id: 'motor_bensin',
@@ -28,23 +28,24 @@ class TroubleshootScreen extends StatelessWidget {
       title: 'Troubleshoot Mobil Listrik',
       icon: Icons.electric_car,
       pdfAsset: 'assets/pdf/troubleshoot-mobil-listrik.pdf',
+
       // pdfUrl: 'https://example.com/pdf/troubleshoot-mobil-listrik.pdf',
-      
     ),
     TroubleshootItem(
       id: 'mobil_bensin',
       title: 'Troubleshoot Mobil Bensin',
       icon: Icons.directions_car,
-      // pdfAsset: 'assets/pdf/troubleshoot-mobil-bensin.pdf',
-      pdfUrl: 'https://microsite.mitsubishi-motors.co.id/owner-manual/media/file/originals/post/2023/01/16/owners-manual-xpander-23-model-year-rev-1310221.pdf',
+      pdfAsset: 'assets/pdf/troubleshoot-mobil-bensin.pdf',
+      // pdfUrl:
+      //     'https://microsite.mitsubishi-motors.co.id/owner-manual/media/file/originals/post/2023/01/16/owners-manual-xpander-23-model-year-rev-1310221.pdf',
     ),
     TroubleshootItem(
       id: 'mobil_hybrid',
       title: 'Troubleshoot Mobil Hybrid',
       icon: Icons.directions_car_filled,
       pdfAsset: 'assets/pdf/troubleshoot-mobil-hybrid.pdf',
+
       // pdfUrl: 'https://example.com/pdf/troubleshoot-mobil-hybrid.pdf',
-       
     ),
   ];
 
@@ -106,11 +107,7 @@ class TroubleshootScreen extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           child: Row(
             children: [
-              Icon(
-                item.icon,
-                size: 28,
-                color: Color(0xFFE53935),
-              ),
+              Icon(item.icon, size: 28, color: Color(0xFFE53935)),
               SizedBox(width: 16),
               Expanded(
                 child: Text(
@@ -122,11 +119,7 @@ class TroubleshootScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey.shade600,
-                size: 28,
-              ),
+              Icon(Icons.chevron_right, color: Colors.grey.shade600, size: 28),
             ],
           ),
         ),

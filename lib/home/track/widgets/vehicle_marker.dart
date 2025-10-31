@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use, duplicate_ignore
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -75,6 +77,7 @@ class VehicleMarker {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
+                        // ignore: deprecated_member_use
                         color: Colors.black.withOpacity(0.3),
                         blurRadius: 4,
                         offset: Offset(0, 2),

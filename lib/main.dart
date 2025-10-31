@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 // import 'package:sihemat/screens/dashboard_screen.dart';
-import 'splash_screen.dart';
 import 'pre_splash_screen.dart';
 
 void main() {

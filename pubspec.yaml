@@ -20,6 +20,7 @@ dependencies:
   flutter_map: ^8.2.2
   google_maps_flutter: ^2.5.0
   flutter_pdfview: ^1.4.3
+  url_launcher: ^6.3.2
   
 
 dev_dependencies:
@@ -35,6 +36,8 @@ flutter:
   assets:
     - assets/ 
     - assets/images/
+    - assets/images/icons/
+    - assets/pdf/
     
 flutter_launcher_icons:
   android: true

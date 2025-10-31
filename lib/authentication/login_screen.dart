@@ -19,14 +19,17 @@ class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final platNomorController = TextEditingController();
+  final verificationCodeController = TextEditingController();
 
   bool _isLoading = false;
+  bool _showVerificationField = false; // Flag untuk tampilkan field verification code
 
   @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
     platNomorController.dispose();
+    verificationCodeController.dispose();
     super.dispose();
   }
 
@@ -48,6 +51,11 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
+  String? _validateVerificationCode(String? value) {
+    if (value == null || value.isEmpty) return "Kode verifikasi harus diisi";
+    return null;
+  }
+
   void _onLoginPressed() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -56,22 +64,72 @@ class _LoginScreenState extends State<LoginScreen> {
     // Simulasi delay network
     await Future.delayed(Duration(milliseconds: 500));
 
-    // Guest login (tanpa autentikasi)
+    // Guest login (2 step)
     if (widget.role == "guest") {
-      SessionManager.userRole = "guest";
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Login berhasil sebagai Guest"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (!_showVerificationField) {
+        // Step 1: Validasi plat nomor
+        final platNomor = platNomorController.text.trim();
+        final account = AccountRepository.getAccountByPlatNomor(platNomor);
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => DashboardScreen()),
-      );
-      return;
+        setState(() => _isLoading = false);
+
+        if (account == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Plat nomor tidak terdaftar"),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        // Plat nomor valid, tampilkan field verification code
+        setState(() {
+          _showVerificationField = true;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Plat nomor ditemukan! Masukkan kode verifikasi"),
+            backgroundColor: Colors.blue,
+          ),
+        );
+        return;
+      } else {
+        // Step 2: Validasi verification code
+        final platNomor = platNomorController.text.trim();
+        final verificationCode = verificationCodeController.text.trim();
+        
+        final account = AccountRepository.guestLogin(platNomor, verificationCode);
+
+        setState(() => _isLoading = false);
+
+        if (account == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Kode verifikasi salah"),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        // Login berhasil sebagai guest
+        SessionManager.loginAsGuest(account);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Login berhasil sebagai Guest - Plat ${account.platNomor}"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => DashboardScreen()),
+        );
+        return;
+      }
     }
 
     // Login untuk pengguna & korporasi
@@ -201,21 +259,49 @@ class _LoginScreenState extends State<LoginScreen> {
                   SizedBox(height: 16),
                 ],
 
-                if (widget.role == "pengguna" || widget.role == "guest") ...[
+                // Guest Login Flow
+                if (widget.role == "guest") ...[
+                  // Step 1: Plat Nomor
                   TextFormField(
                     controller: platNomorController,
+                    enabled: !_showVerificationField, // Disable setelah valid
+                    textCapitalization: TextCapitalization.characters,
                     decoration: InputDecoration(
-                      hintText: "Plat Nomor",
-                      prefixIcon: Icon(Icons.confirmation_num),
+                      hintText: "Plat Nomor (contoh: D 1234 AB)",
+                      prefixIcon: Icon(Icons.directions_car),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: _showVerificationField 
+                          ? Colors.grey.shade200 
+                          : Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      suffixIcon: _showVerificationField
+                          ? Icon(Icons.check_circle, color: Colors.green)
+                          : null,
                     ),
                     validator: _validatePlatNomor,
                   ),
                   SizedBox(height: 16),
+
+                  // Step 2: Verification Code (muncul setelah plat valid)
+                  if (_showVerificationField) ...[
+                    TextFormField(
+                      controller: verificationCodeController,
+                      textCapitalization: TextCapitalization.characters,
+                      decoration: InputDecoration(
+                        hintText: "Kode Verifikasi",
+                        prefixIcon: Icon(Icons.vpn_key),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      validator: _validateVerificationCode,
+                    ),
+                    SizedBox(height: 16),
+                  ],
                 ],
 
                 // Helper text untuk demo
@@ -258,6 +344,56 @@ class _LoginScreenState extends State<LoginScreen> {
                   SizedBox(height: 16),
                 ],
 
+                // Helper text untuk guest
+                if (widget.role == "guest" && !_showVerificationField) ...[
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Akun Demo Guest:",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange.shade900,
+                            fontSize: 12,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          "Plat: D 1234 AB | Kode: BUDI2025\n"
+                          "Plat: D 5678 CD | Kode: SITI2025",
+                          style: TextStyle(fontSize: 11, color: Colors.orange.shade800),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                ],
+
+                // Tombol untuk kembali jika sudah tampil verification field
+                if (widget.role == "guest" && _showVerificationField) ...[
+                  TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _showVerificationField = false;
+                        verificationCodeController.clear();
+                      });
+                    },
+                    icon: Icon(Icons.arrow_back, size: 16),
+                    label: Text("Ubah Plat Nomor"),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.grey.shade600,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                ],
+
                 // Tombol Login
                 SizedBox(
                   width: double.infinity,
@@ -280,7 +416,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           )
                         : Text(
-                            "Login",
+                            widget.role == "guest" && !_showVerificationField
+                                ? "Lanjutkan"
+                                : "Login",
                             style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
                   ),

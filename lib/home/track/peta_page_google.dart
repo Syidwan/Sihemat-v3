@@ -19,6 +19,13 @@ class PetaPageGoogle extends StatefulWidget {
 }
 
 class PetaPageGoogleState extends State<PetaPageGoogle> {
+  static final Map<String, BitmapDescriptor> _markerIconCache = {};
+
+  // Method untuk clear cache (panggil saat logout atau perlu refresh)
+  static void clearMarkerCache() {
+    _markerIconCache.clear();
+  }
+
   late int _currentVehicleIndex;
   double _bottomSheetHeight = MapConfig.DEFAULT_SHEET_HEIGHT;
   final double _minSheetHeight = MapConfig.MIN_SHEET_HEIGHT;
@@ -39,8 +46,9 @@ class PetaPageGoogleState extends State<PetaPageGoogle> {
   }
 
   void _initializeVehicleIndex() {
-    _currentVehicleIndex =
-        _availableVehicles.indexWhere((v) => v.id == widget.initialVehicleId);
+    _currentVehicleIndex = _availableVehicles.indexWhere(
+      (v) => v.id == widget.initialVehicleId,
+    );
     if (_currentVehicleIndex == -1) {
       _currentVehicleIndex = 0;
     }
@@ -49,7 +57,7 @@ class PetaPageGoogleState extends State<PetaPageGoogle> {
   List<Vehicle> get _availableVehicles {
     final currentAccount = SessionManager.currentAccount;
     if (currentAccount == null) return [];
-    
+
     if (currentAccount.role == 'korporasi') {
       return VehicleRepository.getVehiclesByOwnerId(currentAccount.id);
     } else if (currentAccount.role == 'pengguna') {
@@ -94,8 +102,17 @@ class PetaPageGoogleState extends State<PetaPageGoogle> {
     Vehicle vehicle,
     bool isSelected,
   ) async {
+    // Buat cache key berdasarkan vehicle id, status, dan selected state
+    final cacheKey =
+        '${vehicle.id}_${vehicle.status}_${vehicle.type}_$isSelected';
+
+    // Cek apakah marker sudah ada di cache
+    if (_markerIconCache.containsKey(cacheKey)) {
+      return _markerIconCache[cacheKey]!;
+    }
+
     final key = _markerKeys.putIfAbsent(vehicle.id, () => GlobalKey());
-    
+
     final markerWidget = RepaintBoundary(
       key: key,
       child: _buildMarkerWidget(vehicle, isSelected),
@@ -105,32 +122,38 @@ class PetaPageGoogleState extends State<PetaPageGoogle> {
       builder: (context) => Positioned(
         left: -1000,
         top: -1000,
-        child: Material(
-          color: Colors.transparent,
-          child: markerWidget,
-        ),
+        child: Material(color: Colors.transparent, child: markerWidget),
       ),
     );
 
     final overlayState = Overlay.of(context);
     overlayState.insert(overlay);
 
-    await Future.delayed(Duration(milliseconds: 50)); // Reduced delay
+    // Kurangi delay untuk performa lebih baik
+    await Future.delayed(Duration(milliseconds: 30));
 
     try {
-      final renderObject = key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      final renderObject =
+          key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (renderObject == null) {
         overlay.remove();
         throw Exception('Failed to get render object');
       }
 
-      // Use configured pixel ratio for performance
-      final image = await renderObject.toImage(pixelRatio: MapConfig.RENDER_PIXEL_RATIO);
+      final image = await renderObject.toImage(
+        pixelRatio: MapConfig.RENDER_PIXEL_RATIO,
+      );
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       final uint8List = byteData!.buffer.asUint8List();
 
       overlay.remove();
-      return BitmapDescriptor.fromBytes(uint8List);
+
+      final descriptor = BitmapDescriptor.fromBytes(uint8List);
+
+      // Simpan ke cache untuk penggunaan selanjutnya
+      _markerIconCache[cacheKey] = descriptor;
+
+      return descriptor;
     } catch (e) {
       overlay.remove();
       rethrow;
@@ -138,9 +161,13 @@ class PetaPageGoogleState extends State<PetaPageGoogle> {
   }
 
   Widget _buildMarkerWidget(Vehicle vehicle, bool isSelected) {
-    final size = isSelected ? MapConfig.SELECTED_MARKER_SIZE : MapConfig.NORMAL_MARKER_SIZE;
-    final iconSize = isSelected ? MapConfig.SELECTED_ICON_SIZE : MapConfig.NORMAL_ICON_SIZE;
-    
+    final size = isSelected
+        ? MapConfig.SELECTED_MARKER_SIZE
+        : MapConfig.NORMAL_MARKER_SIZE;
+    final iconSize = isSelected
+        ? MapConfig.SELECTED_ICON_SIZE
+        : MapConfig.NORMAL_ICON_SIZE;
+
     return SizedBox(
       width: size,
       height: size + (isSelected ? 20 : 0),
@@ -210,19 +237,19 @@ class PetaPageGoogleState extends State<PetaPageGoogle> {
   Future<void> _updateMarkers() async {
     if (!_isMapReady || !mounted) return;
     final markers = <Marker>{};
-    
+
     for (var vehicle in _availableVehicles) {
       final isSelected = vehicle.id == _currentVehicle.id;
       final icon = await _createMarkerFromWidget(vehicle, isSelected);
-      
+
       markers.add(
         Marker(
           markerId: MarkerId(vehicle.id.toString()),
           position: LatLng(vehicle.latitude, vehicle.longitude),
           icon: icon,
           anchor: Offset(
-            MapConfig.MARKER_ANCHOR_X, 
-            isSelected ? 0.5 : MapConfig.MARKER_ANCHOR_Y
+            MapConfig.MARKER_ANCHOR_X,
+            isSelected ? 0.5 : MapConfig.MARKER_ANCHOR_Y,
           ),
           flat: MapConfig.GOOGLE_MARKER_FLAT,
           draggable: MapConfig.GOOGLE_MARKER_DRAGGABLE,
@@ -231,7 +258,7 @@ class PetaPageGoogleState extends State<PetaPageGoogle> {
         ),
       );
     }
-    
+
     if (mounted) {
       setState(() {
         _markers = markers;
@@ -241,7 +268,7 @@ class PetaPageGoogleState extends State<PetaPageGoogle> {
 
   void _centerMapToCurrentVehicle() {
     if (_mapController == null) return;
-    
+
     _mapController?.animateCamera(
       CameraUpdate.newLatLngZoom(
         LatLng(_currentVehicle.latitude, _currentVehicle.longitude),
@@ -264,7 +291,7 @@ class PetaPageGoogleState extends State<PetaPageGoogle> {
     setState(() {
       _currentVehicleIndex =
           (_currentVehicleIndex - 1 + _availableVehicles.length) %
-              _availableVehicles.length;
+          _availableVehicles.length;
     });
     _updateMarkers();
     _centerMapToCurrentVehicle();
@@ -273,7 +300,8 @@ class PetaPageGoogleState extends State<PetaPageGoogle> {
   void _nextVehicle() {
     if (!_shouldShowNavigationButtons) return;
     setState(() {
-      _currentVehicleIndex = (_currentVehicleIndex + 1) % _availableVehicles.length;
+      _currentVehicleIndex =
+          (_currentVehicleIndex + 1) % _availableVehicles.length;
     });
     _updateMarkers();
     _centerMapToCurrentVehicle();
@@ -298,7 +326,7 @@ class PetaPageGoogleState extends State<PetaPageGoogle> {
             bearing: MapConfig.GOOGLE_CAMERA_BEARING,
           ),
           markers: _markers,
-          
+
           onMapCreated: (controller) async {
             _mapController = controller;
             _mapController?.setMapStyle(MapConfig.GOOGLE_MAP_STYLE);
@@ -363,7 +391,10 @@ class PetaPageGoogleState extends State<PetaPageGoogle> {
           onVerticalDragUpdate: (delta) {
             setState(() {
               _bottomSheetHeight -= delta;
-              _bottomSheetHeight = _bottomSheetHeight.clamp(_minSheetHeight, _maxSheetHeight);
+              _bottomSheetHeight = _bottomSheetHeight.clamp(
+                _minSheetHeight,
+                _maxSheetHeight,
+              );
               _isExpanded = _bottomSheetHeight > MapConfig.EXPAND_THRESHOLD;
             });
           },
