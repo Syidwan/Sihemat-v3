@@ -9,13 +9,13 @@ import 'package:sihemat_v3/home/menu/cek_pajak/cek_pajak_screen.dart';
 import 'package:sihemat_v3/home/menu/speedometer/speedometer_navigator.dart';
 import 'package:sihemat_v3/home/menu/tambah_unit_screen.dart';
 import 'package:sihemat_v3/home/menu/troubleshoot/troubleshoot_screen.dart';
+import 'package:sihemat_v3/home/notification_screen.dart';
 import 'package:sihemat_v3/home/track/track_screen.dart';
 import 'package:sihemat_v3/home/track/peta_page_google.dart';
 import 'package:sihemat_v3/utils/news_data.dart';
 import 'package:sihemat_v3/utils/session_manager.dart';
 import 'package:sihemat_v3/models/repositories/vehicle_repository.dart';
 import 'package:sihemat_v3/models/menu_item.dart';
-
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -32,7 +32,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<MenuItem> get menuItems {
     final currentAccount = SessionManager.currentAccount;
     final isGuest = SessionManager.isGuestMode;
-    
+
     final allMenus = [
       MenuItem(
         id: 'vehicle',
@@ -76,7 +76,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (isGuest || currentAccount?.role == 'pengguna') {
       return allMenus.where((menu) => menu.id != 'vehicle').toList();
     }
-    
+
     return allMenus;
   }
 
@@ -88,7 +88,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _preloadMap() async {
     await Future.delayed(const Duration(milliseconds: 800));
-    
+
     if (mounted) {
       setState(() {
         _isMapPreloaded = true;
@@ -98,19 +98,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   int _getInitialVehicleId() {
     final currentAccount = SessionManager.currentAccount;
-    
+
     if (currentAccount != null) {
       if (currentAccount.role == 'korporasi') {
-        final vehicles = VehicleRepository.getVehiclesByOwnerId(currentAccount.id);
+        final vehicles = VehicleRepository.getVehiclesByOwnerId(
+          currentAccount.id,
+        );
         if (vehicles.isNotEmpty) {
           return vehicles.first.id;
         }
-      } else if (currentAccount.role == 'pengguna' && 
-                 currentAccount.assignedVehicleId != null) {
+      } else if (currentAccount.role == 'pengguna' &&
+          currentAccount.assignedVehicleId != null) {
         return currentAccount.assignedVehicleId!;
       }
     }
-    
+
     final allVehicles = VehicleRepository.getAllVehicles();
     return allVehicles.isNotEmpty ? allVehicles.first.id : 1;
   }
@@ -124,13 +126,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _getGreeting() {
     final account = SessionManager.currentAccount;
     final isGuest = SessionManager.isGuestMode;
-    
+
     if (account == null) return 'Pengguna';
-    
+
     if (isGuest) {
       return 'Mode Guest';
     }
-    
+
     if (account.role == 'korporasi') {
       return account.companyName ?? 'Korporasi';
     } else {
@@ -143,55 +145,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 'vehicle':
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => TambahUnitScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => TambahUnitScreen()),
         );
         break;
-      
+
       case 'maintenance':
         CekKendaraanNavigator.navigate(context);
         break;
-      
+
       case 'speedometer':
         SpeedometerNavigator.navigate(context);
         break;
-      
+
       case 'reports':
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => CekPajakScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => CekPajakScreen()),
         );
         break;
-      
+
       case 'troubleshoot':
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => const TroubleshootScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => const TroubleshootScreen()),
         );
         break;
-      
+
       case 'bantuan':
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => const BantuanScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => const BantuanScreen()),
         );
         break;
-      
+
       default:
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => const Scaffold(
-              body: Center(
-                child: Text("Halaman belum tersedia"),
-              ),
+              body: Center(child: Text("Halaman belum tersedia")),
             ),
           ),
         );
@@ -278,22 +270,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Image.asset(
-                        'assets/images/sihemat_logo.png',
-                        height: 40,
-                      ),
+                      Image.asset('assets/images/sihemat_logo.png', height: 40),
                       Row(
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.notifications_outlined),
-                            onPressed: () {},
-                            color: Colors.grey.shade600,
+                          SizedBox(
+                            width: 48,
+                            height: 48,
+                            child: Stack(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.notifications_outlined,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const NotificationScreen(),
+                                      ),
+                                    );
+                                  },
+                                  color: Colors.grey.shade600,
+                                ),
+                                // Badge - tampilkan hanya jika ada notifikasi belum dibaca
+                                // Uncomment untuk menampilkan badge
+                                Positioned(
+                                  right: 8,
+                                  top: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 16,
+                                      minHeight: 16,
+                                    ),
+                                    child: const Text(
+                                      '3',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.settings_outlined),
-                            onPressed: () {},
-                            color: Colors.grey.shade600,
-                          ),
+                          // IconButton(
+                          //   icon: const Icon(Icons.settings_outlined),
+                          //   onPressed: () {},
+                          //   color: Colors.grey.shade600,
+                          // ),
                         ],
                       ),
                     ],
@@ -313,7 +346,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-          
+
           // Preload Map di background (hidden)
           if (_isMapPreloaded)
             Positioned(
@@ -337,24 +370,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border(
-            top: BorderSide(color: Colors.grey.shade200),
-          ),
+          border: Border(top: BorderSide(color: Colors.grey.shade200)),
         ),
         child: BottomNavigationBar(
           items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
             BottomNavigationBarItem(
               icon: Icon(Icons.track_changes),
               label: 'Track',
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Akun',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Akun'),
           ],
           currentIndex: _selectedIndex,
           selectedItemColor: Colors.black87,
