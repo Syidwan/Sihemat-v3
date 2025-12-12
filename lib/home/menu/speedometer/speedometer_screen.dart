@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:sihemat_v3/models/repositories/account_repository.dart';
 import 'package:sihemat_v3/models/vehicle_model.dart';
 import 'package:sihemat_v3/utils/session_manager.dart';
+import 'package:sihemat_v3/home/track/live_tracking_screen.dart';
 
 class SpeedometerScreen extends StatelessWidget {
   final Vehicle vehicle;
@@ -185,8 +186,11 @@ class SpeedometerScreen extends StatelessWidget {
                   'Lacak',
                   Colors.red,
                   () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Fitur lacak dalam pengembangan')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LiveTrackingScreen(vehicle: vehicle),
+                      ),
                     );
                   },
                 ),

@@ -291,4 +291,27 @@ class VehicleRepository {
   static List<Vehicle> getVehiclesByStatus(String status) {
     return _vehicles.where((v) => v.status == status).toList();
   }
+
+  /// Menambah kendaraan baru ke daftar
+  static bool addVehicle(Vehicle vehicle) {
+    // Cek apakah plat nomor sudah ada
+    final exists = _vehicles.any((v) => v.plate.toUpperCase() == vehicle.plate.toUpperCase());
+    if (exists) return false;
+    
+    _vehicles.add(vehicle);
+    return true;
+  }
+
+  /// Menghapus kendaraan berdasarkan ID
+  static bool deleteVehicle(int id) {
+    final initialLength = _vehicles.length;
+    _vehicles.removeWhere((v) => v.id == id);
+    return _vehicles.length < initialLength;
+  }
+
+  /// Mendapatkan ID berikutnya untuk kendaraan baru
+  static int getNextId() {
+    if (_vehicles.isEmpty) return 1;
+    return _vehicles.map((v) => v.id).reduce((a, b) => a > b ? a : b) + 1;
+  }
 }

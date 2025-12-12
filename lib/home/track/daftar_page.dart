@@ -63,29 +63,75 @@ class _DaftarPageState extends State<DaftarPage> {
   }
 
   void _handleDelete(int id) {
+    final vehicle = VehicleRepository.getVehicleById(id);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hapus Kendaraan'),
-        content:
-            Text('Apakah Anda yakin ingin menghapus kendaraan dengan ID: $id?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.delete_outline, color: Colors.red),
+            ),
+            const SizedBox(width: 12),
+            const Text('Hapus Kendaraan'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Apakah Anda yakin ingin menghapus kendaraan ini?'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    vehicle?.type == 'motorcycle' ? Icons.two_wheeler : Icons.directions_car,
+                    color: Colors.grey.shade600,
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(vehicle?.code ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(vehicle?.plate ?? '', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Batal'),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              setState(() {
-                // Hapus dari list global (untuk demo)
-                // Di production, gunakan VehicleRepository.deleteVehicle()
-              });
+              final deleted = VehicleRepository.deleteVehicle(id);
+              setState(() {});
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Kendaraan berhasil dihapus')),
+                SnackBar(
+                  content: Text(deleted ? 'Kendaraan berhasil dihapus' : 'Gagal menghapus kendaraan'),
+                  backgroundColor: deleted ? Colors.green : Colors.red,
+                ),
               );
             },
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -93,22 +139,147 @@ class _DaftarPageState extends State<DaftarPage> {
   }
 
   void _handleInfo(int id) {
-    showDialog(
+    final vehicle = VehicleRepository.getVehicleById(id);
+    if (vehicle == null) return;
+
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Text('🚧'),
-            SizedBox(width: 8),
-            Text('Under Construction'),
-          ],
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          padding: const EdgeInsets.all(20),
+          child: ListView(
+            controller: scrollController,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      vehicle.type == 'motorcycle' ? Icons.two_wheeler : Icons.directions_car,
+                      size: 32,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(vehicle.code, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        Text(vehicle.plate, style: TextStyle(color: Colors.grey.shade600)),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(vehicle.status).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      vehicle.status[0].toUpperCase() + vehicle.status.substring(1),
+                      style: TextStyle(color: _getStatusColor(vehicle.status), fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 24),
+              const Divider(),
+              
+              // Vehicle Info
+              _buildInfoSection('Informasi Kendaraan', [
+                _buildInfoRow('Merk', vehicle.brand ?? '-'),
+                _buildInfoRow('Model', vehicle.model ?? '-'),
+                _buildInfoRow('Warna', vehicle.color ?? '-'),
+                _buildInfoRow('Tipe', vehicle.type == 'motorcycle' ? 'Motor' : 'Mobil'),
+              ]),
+              
+              const SizedBox(height: 16),
+              
+              // Statistics
+              _buildInfoSection('Statistik', [
+                _buildInfoRow('Total Kilometer', '${vehicle.totalKm} km'),
+                _buildInfoRow('Kilometer Hari Ini', '${vehicle.todayKm} km'),
+              ]),
+              
+              const SizedBox(height: 16),
+              
+              // Tax Info
+              _buildInfoSection('Informasi Pajak', [
+                _buildInfoRow('Pajak Mulai', vehicle.taxStartDate ?? '-'),
+                _buildInfoRow('Pajak Berakhir', vehicle.taxEndDate ?? '-'),
+                _buildInfoRow('STNK Berakhir', vehicle.stnkEndDate ?? '-'),
+              ]),
+              
+              const SizedBox(height: 16),
+              
+              // Location
+              if (vehicle.address != null)
+                _buildInfoSection('Lokasi Terakhir', [
+                  _buildInfoRow('Alamat', vehicle.address!),
+                  _buildInfoRow('Koordinat', '${vehicle.latitude}, ${vehicle.longitude}'),
+                ]),
+              
+              const SizedBox(height: 24),
+              
+              // Close button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE53935),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Tutup', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
         ),
-        content: const Text(
-            'Fitur info detail kendaraan sedang dalam pengembangan.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+      ),
+    );
+  }
+  
+  Widget _buildInfoSection(String title, List<Widget> children) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        ...children,
+      ],
+    );
+  }
+  
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: Colors.grey.shade600)),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
           ),
         ],
       ),

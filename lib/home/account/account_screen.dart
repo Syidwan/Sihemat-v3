@@ -4,6 +4,12 @@ import 'package:sihemat_v3/utils/session_manager.dart';
 import 'package:sihemat_v3/models/account.dart';
 import 'package:sihemat_v3/models/repositories/account_repository.dart';
 import 'package:sihemat_v3/models/repositories/vehicle_repository.dart';
+import 'package:sihemat_v3/home/account/edit_profile_screen.dart';
+import 'package:sihemat_v3/home/account/settings_screen.dart';
+import 'package:sihemat_v3/home/account/notification_settings_screen.dart';
+import 'package:sihemat_v3/home/account/reports_screen.dart';
+import 'package:sihemat_v3/home/account/configuration_screen.dart';
+import 'package:sihemat_v3/home/account/feedback_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -288,7 +294,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     icon: Icons.person_outline,
                     title: 'Edit Profil',
                     onTap: () {
-                      _showUnderConstruction(context, 'Edit Profil');
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()));
                     },
                   ),
 
@@ -296,7 +302,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     icon: Icons.settings_outlined,
                     title: 'Pengaturan',
                     onTap: () {
-                      _showUnderConstruction(context, 'Pengaturan');
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
                     },
                   ),
 
@@ -304,7 +310,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     icon: Icons.notifications_outlined,
                     title: 'Notifikasi',
                     onTap: () {
-                      _showUnderConstruction(context, 'Notifikasi');
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen()));
                     },
                   ),
 
@@ -312,7 +318,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     icon: Icons.description_outlined,
                     title: 'Laporan',
                     onTap: () {
-                      _showUnderConstruction(context, 'Laporan');
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen()));
                     },
                   ),
 
@@ -320,7 +326,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     icon: Icons.tune,
                     title: 'Konfigurasi',
                     onTap: () {
-                      _showUnderConstruction(context, 'Konfigurasi');
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ConfigurationScreen()));
                     },
                   ),
 
@@ -328,7 +334,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     icon: Icons.mail_outline,
                     title: 'Umpan Balik',
                     onTap: () {
-                      _showUnderConstruction(context, 'Umpan Balik');
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const FeedbackScreen()));
                     },
                   ),
 

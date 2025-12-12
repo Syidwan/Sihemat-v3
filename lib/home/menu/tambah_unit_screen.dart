@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:sihemat_v3/models/vehicle_model.dart';
+import 'package:sihemat_v3/models/repositories/vehicle_repository.dart';
+import 'package:sihemat_v3/utils/session_manager.dart';
 // import 'package:image_picker/image_picker.dart';
 
 class TambahUnitScreen extends StatefulWidget {
@@ -71,21 +74,76 @@ class _TambahUnitScreenState extends State<TambahUnitScreen> {
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Simpan data ke database/API
-      print('Form submitted!');
-      print('Nama Unit: ${_namaUnitController.text}');
-      print('Nama Pemilik: ${_namaPemilikController.text}');
+      final currentAccount = SessionManager.currentAccount;
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Data unit berhasil disimpan!'),
-          backgroundColor: Colors.green,
-        ),
+      // Create new vehicle with form data
+      final newVehicle = Vehicle(
+        id: VehicleRepository.getNextId(),
+        code: _nomorImeiController.text.toUpperCase(),
+        plate: _nomorRegistrasiController.text.toUpperCase(),
+        totalKm: 0,
+        todayKm: 0,
+        status: 'online',
+        type: _jenisController.text.toLowerCase().contains('motor') ? 'motorcycle' : 'car',
+        latitude: -6.9175,
+        longitude: 107.6191,
+        address: _alamatController.text,
+        ownerId: currentAccount?.id ?? 'CORP001',
+        taxStartDate: _tanggalBayarPajakController.text,
+        taxEndDate: _calculateNextYear(_tanggalBayarPajakController.text),
+        stnkEndDate: _calculateFiveYears(_tanggalBayarPajakController.text),
+        color: 'BLACK',
+        brand: _merkController.text.toUpperCase(),
+        model: _tipeController.text.toUpperCase(),
+        pajakKendaraan: 100000,
+        swdkllj: 35000,
+        pnbpStnk: 66100,
+        pnbpTnkb: 0,
+        adminStnk: 35000,
+        adminTnkb: 0,
+        penerbitan: 0,
       );
+
+      final success = VehicleRepository.addVehicle(newVehicle);
       
-      // Kembali ke halaman sebelumnya
-      Navigator.pop(context);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unit kendaraan berhasil ditambahkan!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context, true); // Return true to indicate success
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Plat nomor sudah terdaftar!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
+  }
+
+  String _calculateNextYear(String date) {
+    // Simple date calculation for demo
+    if (date.isEmpty) return '01/01/2026';
+    final parts = date.split('/');
+    if (parts.length == 3) {
+      final year = int.tryParse(parts[2]) ?? 2025;
+      return '${parts[0]}/${parts[1]}/${year + 1}';
+    }
+    return '01/01/2026';
+  }
+
+  String _calculateFiveYears(String date) {
+    if (date.isEmpty) return '01/01/2030';
+    final parts = date.split('/');
+    if (parts.length == 3) {
+      final year = int.tryParse(parts[2]) ?? 2025;
+      return '${parts[0]}/${parts[1]}/${year + 5}';
+    }
+    return '01/01/2030';
   }
 
   @override

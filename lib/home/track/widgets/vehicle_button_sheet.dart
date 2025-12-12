@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sihemat_v3/home/track/widgets/action_button_widget.dart';
+import 'package:sihemat_v3/home/track/playback_screen.dart';
+import 'package:sihemat_v3/home/track/live_tracking_screen.dart';
 import 'package:sihemat_v3/models/repositories/account_repository.dart';
 import 'package:sihemat_v3/models/vehicle_model.dart';
 import 'package:sihemat_v3/utils/session_manager.dart';
@@ -108,22 +110,19 @@ class VehicleBottomSheet extends StatelessWidget {
   }
 
   void _handleTrack(BuildContext context) {
-    // PERBAIKAN: Jangan pop context, hanya tampilkan snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Melacak ${vehicle.code}'),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LiveTrackingScreen(vehicle: vehicle),
       ),
     );
   }
 
   void _handlePlayback(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fitur Playback sedang dalam pengembangan'),
-        duration: Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PlaybackScreen(vehicle: vehicle),
       ),
     );
   }
