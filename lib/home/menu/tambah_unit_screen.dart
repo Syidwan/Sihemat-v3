@@ -28,6 +28,11 @@ class _TambahUnitScreenState extends State<TambahUnitScreen> {
   final _nomorMesinController = TextEditingController();
   final _nomorBPKBController = TextEditingController();
   
+  // Tipe Kendaraan options
+  String? _selectedTipeKendaraan;
+  final List<String> _tipeKendaraanOptions = ['Listrik', 'Hybrid', 'Bensin'];
+  bool _isNomorMesinReadOnly = false;
+  
   File? _selectedImage;
   // final ImagePicker _picker = ImagePicker();
 
@@ -284,17 +289,7 @@ class _TambahUnitScreenState extends State<TambahUnitScreen> {
                   ),
                   SizedBox(width: 12),
                   Expanded(
-                    child: _buildTextField(
-                      controller: _tipeController,
-                      label: 'Tipe',
-                      hint: 'Tipe kendaraan',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Tipe tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                    ),
+                    child: _buildTipeKendaraanField(),
                   ),
                 ],
               ),
@@ -371,7 +366,8 @@ class _TambahUnitScreenState extends State<TambahUnitScreen> {
               _buildTextField(
                 controller: _nomorMesinController,
                 label: 'Nomor Mesin',
-                hint: 'Masukkan nomor mesin',
+                hint: _isNomorMesinReadOnly ? 'Dinamo (Kendaraan Listrik)' : 'Masukkan nomor mesin',
+                readOnly: _isNomorMesinReadOnly,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Nomor mesin tidak boleh kosong';
@@ -487,6 +483,148 @@ class _TambahUnitScreenState extends State<TambahUnitScreen> {
     );
   }
 
+  // Widget untuk Tipe Kendaraan dengan Autocomplete
+  Widget _buildTipeKendaraanField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Tipe Kendaraan',
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey.shade700,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(height: 8),
+        Autocomplete<String>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            // Selalu tampilkan semua opsi agar user bisa memilih ulang
+            return _tipeKendaraanOptions;
+          },
+          onSelected: (String selection) {
+            _onTipeKendaraanChanged(selection);
+          },
+          fieldViewBuilder: (BuildContext context,
+              TextEditingController textEditingController,
+              FocusNode focusNode,
+              VoidCallback onFieldSubmitted) {
+            // Sync with _tipeController
+            textEditingController.addListener(() {
+              if (_tipeController.text != textEditingController.text) {
+                _tipeController.text = textEditingController.text;
+                _onTipeKendaraanChanged(textEditingController.text);
+              }
+            });
+            
+            return TextFormField(
+              controller: textEditingController,
+              focusNode: focusNode,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Tipe kendaraan tidak boleh kosong';
+                }
+                return null;
+              },
+              decoration: InputDecoration(
+                hintText: 'Listrik/Hybrid/Bensin',
+                hintStyle: TextStyle(color: Colors.grey.shade400),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Color(0xFFE53935), width: 2),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.red),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.red, width: 2),
+                ),
+                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                suffixIcon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
+              ),
+            );
+          },
+          optionsViewBuilder: (BuildContext context,
+              AutocompleteOnSelected<String> onSelected,
+              Iterable<String> options) {
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4.0,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 200,
+                  constraints: BoxConstraints(maxHeight: 200),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: options.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final String option = options.elementAt(index);
+                      return ListTile(
+                        title: Text(option),
+                        leading: Icon(
+                          option == 'Listrik'
+                              ? Icons.electric_car
+                              : option == 'Hybrid'
+                                  ? Icons.eco
+                                  : Icons.local_gas_station,
+                          color: option == 'Listrik'
+                              ? Colors.green
+                              : option == 'Hybrid'
+                                  ? Colors.blue
+                                  : Colors.orange,
+                        ),
+                        onTap: () {
+                          onSelected(option);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  // Handler untuk perubahan tipe kendaraan
+  void _onTipeKendaraanChanged(String value) {
+    setState(() {
+      _selectedTipeKendaraan = value;
+      
+      // Jika tipe kendaraan adalah Listrik, isi nomor mesin dengan "Dinamo"
+      if (value.toLowerCase() == 'listrik') {
+        _nomorMesinController.text = 'Dinamo';
+        _isNomorMesinReadOnly = true;
+      } else {
+        // Jika bukan listrik dan sebelumnya adalah "Dinamo", kosongkan
+        if (_nomorMesinController.text == 'Dinamo') {
+          _nomorMesinController.text = '';
+        }
+        _isNomorMesinReadOnly = false;
+      }
+    });
+  }
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -496,6 +634,7 @@ class _TambahUnitScreenState extends State<TambahUnitScreen> {
     String? Function(String?)? validator,
     VoidCallback? onTap,
     IconData? suffixIcon,
+    bool readOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -515,7 +654,7 @@ class _TambahUnitScreenState extends State<TambahUnitScreen> {
           keyboardType: keyboardType,
           validator: validator,
           onTap: onTap,
-          readOnly: onTap != null,
+          readOnly: readOnly || onTap != null,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey.shade400),

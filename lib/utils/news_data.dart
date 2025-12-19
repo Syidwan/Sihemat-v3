@@ -17,14 +17,14 @@ class NewsData {
         title: 'Update Fitur Terbaru Aplikasi SIHEMAT',
       ),
       NewsItem(
-        imagePath: 'assets/images/news3.png',
+        imagePath: 'assets/images/news3.jpg',
         url: 'https://www.example.com/berita-3',
-        title: 'Cara Menghemat BBM dengan GPS Tracking',
+        title: 'Kementerian ESDM: Realisasi Infrastruktur Kendaraan Listrik 261%',
       ),
       NewsItem(
-        imagePath: 'assets/images/news4.png',
+        imagePath: 'assets/images/news4.jpeg',
         url: 'https://www.example.com/berita-4',
-        title: 'Promo Service Kendaraan Bulan Ini',
+        title: 'Pajak Motor Listrik: Gocap Aja Nggak Nyampe, Kecuali..',
       ),
     ];
   }
